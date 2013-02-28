@@ -1,0 +1,30 @@
+mixins:
+  defaults:
+    ami: ami-950680fc        # ubuntu instance store
+    subnet: subnet-c7387eaa  # private subnet
+    region: us-east-1        
+    user-data: user_data/before_bootstrap.sh
+    flavor: m1.small
+    group: default
+    ssh_user: ubuntu
+    template: chef_full
+  ebs:
+    ami: ami-e50e888c
+  public_subnet:
+    subnet: subnet-e4387e89
+
+servers:
+  prod_nginx_load_balancer:
+    mixins: [defaults, public_subnet]
+    config:
+      name: nginx_load_balancer_aws
+      run_list: "recipe[banno-nginx]"
+      groups: [http, https]
+      environment: prod
+  prod_cms_app_server:
+    mixins: [defaults, public_subnet]
+    config:
+      name: cms_application
+      run_list: "recipe[banno-cms]"
+      groups: [http, https]
+      environment: prod

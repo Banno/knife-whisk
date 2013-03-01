@@ -7,20 +7,25 @@ class Chef
     module ConfigLoader
       def self.included(includer)
         includer.class_eval do
-          option :custom_path,
-            :short => '-C',
-            :log => '--config_path',
-            :boolean => true,
-            :description => "Specify path to your whisk.yml file"
+          option :whisk_config_file,
+            :short => '-C PATH',
+            :long => '--whisk-config PATH',
+            :description => "Specify path to your whisk.yml file",
+            :proc => Proc.new { |path| Chef::Config[:knife][:whisk_config_file] = path }
         end
       end
             
       def get_config
-        if File.exists?(::Chef::Knife::chef_config_dir+"/whisk.yml")
-          YAML.load_file(::Chef::Knife::chef_config_dir+"/whisk.yml")
+        puts Chef::Config[:knife]
+        if Chef::Config[:knife][:whisk_config_file].nil?
+          if File.exists?(::Chef::Knife::chef_config_dir+"/whisk.yml")
+            YAML.load_file(::Chef::Knife::chef_config_dir+"/whisk.yml")
+          else
+            puts "Required whisk.yml does not exist"
+            exit 1
+          end
         else
-          puts "Required whisk.yml does not exist"
-          exit 1
+          YAML.load_file(Chef::Config[:knife][:whisk_config_file])
         end
       end    
     end
@@ -56,12 +61,17 @@ class Chef
           exit 1
         end
         server_list = get_config["servers"]
+        puts name_args.first
         puts server_list["#{name_args.first}"].to_yaml
       end
     end
 
     class WhiskGenerate < Chef::Knife
+      include Knife::ConfigLoader
       banner "knife whisk generate NODENAME"
+      def run
+
+      end
     end
 
   class WhiskHistory < Chef::Knife

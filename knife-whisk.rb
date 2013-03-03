@@ -4,7 +4,7 @@ require 'yaml'
 #module KnifeWhisk
 class Chef
   class Knife
-    module ConfigLoader
+    module WhiskBase
       def self.included(includer)
         includer.class_eval do
           option :whisk_config_file,
@@ -16,7 +16,6 @@ class Chef
       end
             
       def get_config
-        puts Chef::Config[:knife]
         if Chef::Config[:knife][:whisk_config_file].nil?
           if File.exists?(::Chef::Knife::chef_config_dir+"/whisk.yml")
             YAML.load_file(::Chef::Knife::chef_config_dir+"/whisk.yml")
@@ -27,7 +26,54 @@ class Chef
         else
           YAML.load_file(Chef::Config[:knife][:whisk_config_file])
         end
-      end    
+      end
+      def get_flags
+        ec2_flags = [
+          "" => "availability-zone",
+          "" => "aws-access-key-id",
+          "" => "aws-secret-access-key",
+          "" => "user-data",
+          "" => "bootstrap-version",
+          "" => "node-name",
+          "" => "server-url",
+          "" => "key",
+          "" => "[no-]color",
+          "" => "config",
+          "" => "defaults",
+          "" => "disable-editing",
+          "" => "distro",
+          "" => "ebs-no-delete-on-term",
+          "" => "ebs-optimized",
+          "" => "ebs-size",
+          "" => "editor",
+          "" => "environment",
+          "" => "ephemeral",
+          "" => "flavor",
+          "" => "format",
+          "" => "hint",
+          "" => "[no-]host-key-verify",
+          "" => "identity-file",
+          "" => "image",
+          "" => "json-attributes",
+          "" => "user",
+          "" => "prerelease",
+          "" => "print-after",
+          "" => "private-ip-address",
+          "" => "region",
+          "" => "run-list",
+          "" => "security-group-ids",
+          "" => "groups",
+          "" => "server-connect-attribute",
+          "" => "ssh-gateway",
+          "" => "ssh-key",
+          "" => "ssh-password",
+          "" => "ssh-port",
+          "" => "ssh-user",
+          "" => "subnet",
+          "" => "tags",
+        ]
+        pp ec2_flags
+      end
     end
   end
       
@@ -41,7 +87,7 @@ class Chef
     end
     
     class WhiskList < Chef::Knife
-      include Knife::ConfigLoader
+      include Knife::WhiskBase
       banner "knife whisk list"
       def run
         server_list = get_config["servers"]
@@ -52,7 +98,7 @@ class Chef
     end
     
     class WhiskShow < Chef::Knife
-      include Knife::ConfigLoader
+      include Knife::WhiskBase
       banner "knife whisk show TEMPLATENAME"
       def run
         unless name_args.size == 1
@@ -67,10 +113,12 @@ class Chef
     end
 
     class WhiskGenerate < Chef::Knife
-      include Knife::ConfigLoader
-      banner "knife whisk generate NODENAME"
+      include Knife::WhiskBase
+      banner "knife whisk generate TEMPLATENAME NODENAME"
       def run
-
+        full_hash = get_config
+        defaults = full_hash["mixins"]["defaults"]
+        puts defaults["ami"]
       end
     end
 

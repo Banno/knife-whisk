@@ -69,16 +69,18 @@ class Chef
 
     class WhiskGenerate < Chef::Knife
       include Knife::WhiskBase
-      banner "knife whisk generate TEMPLATENAME NODENAME"
+      banner "knife whisk generate SERVERTEMPLATE NODENAME"
       def run
-        unless name_args.size == 1
+        unless name_args.size >= 2 
           ui.fatal "no args provided"
           show_usage
           exit 1
         end
+        servertemplate = name_args.first
+        overrides = name_args[1..-1]
         full_hash = get_config
-        server_mixins = full_hash["servers"]["#{name_args.first}"]["mixins"]
-        server_config = full_hash["servers"]["#{name_args.first}"]["config"]
+        server_mixins = full_hash["servers"][servertemplate]["mixins"]
+        server_config = full_hash["servers"][servertemplate]["config"]
         output_hash = server_mixins.inject(Hash.new) {|output, mixin| output.merge(full_hash["mixins"][mixin])}
         output_hash = output_hash.merge(server_config)
         output_hash.each do |mixin, value|

@@ -42,8 +42,7 @@ class Chef
     include Knife::WhiskBase
     banner "knife whisk server list"
     def run
-      server_list = get_config["servers"]
-      server_list.each do |server|
+      get_config["servers"].each do |server|
         puts server.first
       end
     end
@@ -51,22 +50,21 @@ class Chef
   
   class WhiskServerShow < Chef::Knife
     include Knife::WhiskBase
-    banner "knife whisk server show TEMPLATENAME"
+    banner "knife whisk server show SERVER"
     def run
       unless name_args.size == 1
-        ui.fatal "You must specify a template name"
+        ui.fatal "You must specify a server name"
         show_usage
         exit 1
       end
-      server_list = get_config["servers"]
       puts name_args.first
-      puts server_list["#{name_args.first}"].to_yaml
+      puts get_config["servers"]["#{name_args.first}"].to_yaml
     end
   end
 
   class WhiskGenerate < Chef::Knife
     include Knife::WhiskBase
-    banner "knife whisk generate SERVERTEMPLATE [OPTION]"
+    banner "knife whisk generate SERVER [OPTION]"
     def run
       unless name_args.size >= 1 
         ui.fatal "no args provided"
@@ -92,14 +90,26 @@ class Chef
   end
 
   class WhiskMixinList < Chef::Knife
+    include Knife::WhiskBase
     banner "knife whisk mixin list"
     def run
+      get_config["mixins"].each do |mixin|
+        puts mixin.first
+      end
     end
   end
 
   class WhiskMixinShow < Chef::Knife
-    banner "knife whisk mixin show"
+    include Knife::WhiskBase
+    banner "knife whisk mixin show MIXIN"
     def run
+      unless name_args.size == 1
+        ui.fatal "You must specify a mixin"
+        show_usage
+        exit 1
+      end
+      puts name_args.first
+      puts get_config["mixins"]["#{name_args.first}"].to_yaml
     end
   end
 

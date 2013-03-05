@@ -1,7 +1,6 @@
 require 'chef/knife'
 require 'yaml'
 
-#module KnifeWhisk
 class Chef
   class Knife
     module WhiskBase
@@ -28,50 +27,6 @@ class Chef
         end
       end
       def get_flags
-        ec2_flags = [
-          "" => "availability-zone",
-          "" => "aws-access-key-id",
-          "" => "aws-secret-access-key",
-          "" => "user-data",
-          "" => "bootstrap-version",
-          "" => "node-name",
-          "" => "server-url",
-          "" => "key",
-          "" => "[no-]color",
-          "" => "config",
-          "" => "defaults",
-          "" => "disable-editing",
-          "" => "distro",
-          "" => "ebs-no-delete-on-term",
-          "" => "ebs-optimized",
-          "" => "ebs-size",
-          "" => "editor",
-          "" => "environment",
-          "" => "ephemeral",
-          "" => "flavor",
-          "" => "format",
-          "" => "hint",
-          "" => "[no-]host-key-verify",
-          "" => "identity-file",
-          "" => "image",
-          "" => "json-attributes",
-          "" => "user",
-          "" => "prerelease",
-          "" => "print-after",
-          "" => "private-ip-address",
-          "" => "region",
-          "" => "run-list",
-          "" => "security-group-ids",
-          "" => "groups",
-          "" => "server-connect-attribute",
-          "" => "ssh-gateway",
-          "" => "ssh-key",
-          "" => "ssh-password",
-          "" => "ssh-port",
-          "" => "ssh-user",
-          "" => "subnet",
-          "" => "tags",
-        ]
         pp ec2_flags
       end
     end
@@ -116,9 +71,23 @@ class Chef
       include Knife::WhiskBase
       banner "knife whisk generate TEMPLATENAME NODENAME"
       def run
+        unless name_args.size == 1
+          ui.fatal "no args provided"
+          show_usage
+          exit 1
+        end
         full_hash = get_config
-        defaults = full_hash["mixins"]["defaults"]
-        puts defaults["ami"]
+        server_mixins = full_hash["servers"]["#{name_args.first}"]["mixins"]
+        server_config = full_hash["servers"]["#{name_args.first}"]["config"]
+        output_hash = server_mixins.inject(Hash.new) {|output, mixin| output.merge(full_hash["mixins"][mixin])}
+        output_hash = output_hash.merge(server_config)
+        output_hash.each do |mixin, value|
+          if value.kind_of?(Array)
+            output_hash[mixin] = value.join(",")
+          end
+        end
+        output = output_hash.map {|key, value| ["--"+key, value]}.join(" ")
+        printf "knife ec2 server create %s\n", output
       end
     end
 

@@ -92,9 +92,15 @@ class Chef
   end
 
   class WhiskMixinList < Chef::Knife
+    banner "knife whisk mixin list"
+    def run
+    end
   end
 
   class WhiskMixinShow < Chef::Knife
+    banner "knife whisk mixin show"
+    def run
+    end
   end
 
   class WhiskHistory < Chef::Knife

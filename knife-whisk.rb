@@ -32,7 +32,7 @@ class Chef
   class Whisk < Chef::Knife
     banner "knife whisk"
     def run
-      ui.fatal "Did you mean \"knife whisk list\" instead?"
+      ui.fatal "Did you mean \"knife whisk mixin list\" or \"knife whisk server list\" instead?"
       show_usage
       exit 1
     end
@@ -66,15 +66,16 @@ class Chef
 
   class WhiskGenerate < Chef::Knife
     include Knife::WhiskBase
-    banner "knife whisk generate SERVERTEMPLATE NODENAME"
+    banner "knife whisk generate SERVERTEMPLATE [OPTION]"
     def run
-      unless name_args.size >= 2 
+      unless name_args.size >= 1 
         ui.fatal "no args provided"
         show_usage
         exit 1
       end
       servertemplate = name_args.first
-      overrides = name_args[1..-1]
+      # overrides = Hash[*name_args[1..-1]]
+      # pp overrides
       full_hash = get_config
       server_mixins = full_hash["servers"][servertemplate]["mixins"]
       server_config = full_hash["servers"][servertemplate]["config"]

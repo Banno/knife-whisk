@@ -6,16 +6,24 @@ class Chef
     module WhiskBase
       def self.included(includer)
         includer.class_eval do
+
           option :whisk_config_file,
             :short => '-C PATH',
             :long => '--whisk-config PATH',
             :description => "Specify path to your whisk.yml file",
             :proc => Proc.new { |path| Chef::Config[:knife][:whisk_config_file] = path }
+          
           option :mixins,
             :short => '-M MIXINS',
             :long => '--mixins MIXINS',
             :description => "Overrides server mixins, takes comma seperated list of mixins",
-            :proc => Proc.new { |input| @@override_mixins = input.split(",")}
+            :proc => Proc.new { |input| input.split(",")}
+          
+          option :overrides,
+            :short => '-O STRING',
+            :long => '--overrides STRING',
+            :description => "Override flags, takes string containing flags and values",
+            :proc => Proc.new {|string| Hash[*string.split]}
         end
       end
             
@@ -31,13 +39,13 @@ class Chef
           YAML.load_file(Chef::Config[:knife][:whisk_config_file])
         end
       end
-      def get_security_groups(group_array)
+      def get_security_groups(groups)
         if get_config["security-groups"].nil?
           puts "security-groups not defined in whisk.yml"
           exit 1
         else
           lookup_hash = get_config["security-groups"]
-          group_array.map! { |name| name.replace(lookup_hash[name]) }
+          groups.split(',').map! { |name| name.replace(lookup_hash[name]) }.join(',')
         end
       end
     end
@@ -81,32 +89,26 @@ class Chef
     include Knife::WhiskBase
     banner "knife whisk generate SERVER [OPTION]"
     def run
-      unless name_args.size >= 1 
-        ui.fatal "no args provided"
-        show_usage
-        exit 1
-      end
-      servertemplate = name_args.first
-      # overrides = Hash[*name_args[1..-1]]
-      # pp overrides
       full_hash = get_config
-      server_mixins = full_hash["servers"][servertemplate]["mixins"]
-      unless @@override_mixins.nil?
-        server_mixins = full_hash["servers"][servertemplate]["mixins"] + @@override_mixins
+      if name_args.size == 0
+        server_config = full_hash["mixins"]["defaults"]
+        server_mixins = ["defaults"]
+      else
+        server_mixins = full_hash["servers"][name_args.first]["mixins"]
+        server_config = full_hash["servers"][name_args.first]["config"]
       end
-      server_config = full_hash["servers"][servertemplate]["config"]
-      output_hash = server_mixins.inject(Hash.new) {|output, mixin| output.merge(full_hash["mixins"][mixin])}
-      output_hash = output_hash.merge(server_config)
+      unless @config[:mixins].nil?
+        server_mixins = server_mixins + @config[:mixins]
+      end
+      output_hash = server_mixins.inject(Hash.new) {|output, mixin| output.merge(full_hash["mixins"][mixin])}.merge(server_config)
       output_hash.each do |mixin, value|
         if value.kind_of?(Array)
           output_hash[mixin] = value.join(",")
         end
-        if mixin == "security-groups"
-          output_hash[mixin] = get_security_groups(value).join(",")
-        end
       end
-      output = output_hash.map {|key, value| ["--"+key, value]}.join(" ")
-      printf "knife ec2 server create %s\n", output
+      output_hash = output_hash.merge(@config[:overrides])
+      output_hash["security-groups"] = get_security_groups(output_hash["security-groups"]) unless output_hash["security-groups"].nil?
+      printf "knife ec2 server create %s\n", output_hash.map {|key, value| ["--"+key, value]}.join(" ")
     end
   end
 

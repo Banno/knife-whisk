@@ -26,6 +26,15 @@ class Chef
           YAML.load_file(Chef::Config[:knife][:whisk_config_file])
         end
       end
+      def get_security_groups(group_array)
+        if get_config["security-groups"].nil?
+          puts "security-groups not defined in whisk.yml"
+          exit 1
+        else
+          lookup_hash = get_config["security-groups"]
+          group_array.map! {|name| name.replace(lookup_hash[name])}
+        end
+      end
     end
   end
       
@@ -82,6 +91,9 @@ class Chef
       output_hash.each do |mixin, value|
         if value.kind_of?(Array)
           output_hash[mixin] = value.join(",")
+        end
+        if mixin == "security-groups"
+          output_hash[mixin] = get_security_groups(value).join(",")
         end
       end
       output = output_hash.map {|key, value| ["--"+key, value]}.join(" ")

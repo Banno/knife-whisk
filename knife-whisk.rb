@@ -11,6 +11,11 @@ class Chef
             :long => '--whisk-config PATH',
             :description => "Specify path to your whisk.yml file",
             :proc => Proc.new { |path| Chef::Config[:knife][:whisk_config_file] = path }
+          option :mixins,
+            :short => '-M MIXINS',
+            :long => '--mixins MIXINS',
+            :description => "Overrides server mixins, takes comma seperated list of mixins",
+            :proc => Proc.new { |input| @@override_mixins = input.split(",")}
         end
       end
             
@@ -32,13 +37,14 @@ class Chef
           exit 1
         else
           lookup_hash = get_config["security-groups"]
-          group_array.map! {|name| name.replace(lookup_hash[name])}
+          group_array.map! { |name| name.replace(lookup_hash[name]) }
         end
       end
     end
   end
       
   class Whisk < Chef::Knife
+    include Knife::WhiskBase
     banner "knife whisk"
     def run
       ui.fatal "Did you mean \"knife whisk mixin list\" or \"knife whisk server list\" instead?"
@@ -85,6 +91,9 @@ class Chef
       # pp overrides
       full_hash = get_config
       server_mixins = full_hash["servers"][servertemplate]["mixins"]
+      unless @@override_mixins.nil?
+        server_mixins = full_hash["servers"][servertemplate]["mixins"] + @@override_mixins
+      end
       server_config = full_hash["servers"][servertemplate]["config"]
       output_hash = server_mixins.inject(Hash.new) {|output, mixin| output.merge(full_hash["mixins"][mixin])}
       output_hash = output_hash.merge(server_config)

@@ -102,7 +102,7 @@ class Chef
           output_hash[mixin] = value.join(",")
         end
       end
-      output_hash = output_hash.merge(@config[:overrides])
+      output_hash = output_hash.merge(@config[:overrides]) unless @config[:overrides].nil?
       unless output_hash["security-groups"].nil?
         output_hash["security-groups-ids"] = get_security_groups(output_hash["security-groups"])
         output_hash.delete("security-groups")

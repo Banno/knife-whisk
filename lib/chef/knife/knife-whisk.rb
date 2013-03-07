@@ -101,6 +101,32 @@ class Chef
       end
     end
   end
+  
+  class WhiskMixinList < Chef::Knife
+    include Knife::WhiskBase
+    banner "knife whisk mixin list"
+    def run
+      get_config["mixins"].each do |mixin|
+        puts mixin.first
+      end
+    end
+  end
+
+  class WhiskMixinShow < Chef::Knife
+    include Knife::WhiskBase
+    banner "knife whisk mixin show MIXIN"
+    def run
+      unless name_args.size == 1
+        ui.fatal "You must specify a mixin"
+        show_usage
+        exit 1
+      end
+      unless check_mixin(name_args.first)
+        puts name_args.first
+        puts get_config["mixins"]["#{name_args.first}"].to_yaml
+      end
+    end
+  end
 
   class WhiskGenerate < Chef::Knife
     include Knife::WhiskBase
@@ -139,35 +165,5 @@ class Chef
       
       printf "knife ec2 server create %s\n", output_hash.map { |key, value| ["--"+key, value] }.join(" ")
     end
-  end
-
-  class WhiskMixinList < Chef::Knife
-    include Knife::WhiskBase
-    banner "knife whisk mixin list"
-    def run
-      get_config["mixins"].each do |mixin|
-        puts mixin.first
-      end
-    end
-  end
-
-  class WhiskMixinShow < Chef::Knife
-    include Knife::WhiskBase
-    banner "knife whisk mixin show MIXIN"
-    def run
-      unless name_args.size == 1
-        ui.fatal "You must specify a mixin"
-        show_usage
-        exit 1
-      end
-      unless check_mixin(name_args.first)
-        puts name_args.first
-        puts get_config["mixins"]["#{name_args.first}"].to_yaml
-      end
-    end
-  end
-
-  class WhiskHistory < Chef::Knife
-    banner "knife whisk history"
   end
 end

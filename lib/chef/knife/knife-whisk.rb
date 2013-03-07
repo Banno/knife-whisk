@@ -56,17 +56,7 @@ class Chef
       end
     end
   end
-      
-  class Whisk < Chef::Knife
-    include Knife::WhiskBase
-    banner "knife whisk"
-    def run
-      ui.fatal "Did you mean \"knife whisk mixin list\" or \"knife whisk server list\" instead?"
-      show_usage
-      exit 1
-    end
-  end
-  
+
   class WhiskServerList < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk server list"

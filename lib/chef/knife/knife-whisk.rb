@@ -23,7 +23,8 @@ class Chef
             :short => '-O STRING',
             :long => '--overrides STRING',
             :description => "Override flags, takes string containing flags and values",
-            :proc => Proc.new { |string| 
+            :proc => Proc.new { |string|
+              # checks if the flags have -- in front, if not error, if so strip them before returning
               if Hash[*string.split].keys.select { |n| n[0..1] != "--" }.size == 0
                 Hash[Hash[*string.split].map {|key, val|[key.sub(/^--/, ''), val]}]
               else
@@ -101,7 +102,7 @@ class Chef
       end
     end
   end
-  
+
   class WhiskMixinList < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk mixin list"

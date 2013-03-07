@@ -23,7 +23,14 @@ class Chef
             :short => '-O STRING',
             :long => '--overrides STRING',
             :description => "Override flags, takes string containing flags and values",
-            :proc => Proc.new {|string| Hash[*string.split]}
+            :proc => Proc.new { |string| 
+              if Hash[*string.split].keys.select { |n| n[0..1] != "--" }.size == 0
+                Hash[Hash[*string.split].map {|key, val|[key.sub(/^--/, ''), val]}]
+              else
+                puts "Please use only long form flag names"
+                exit 1
+              end
+            }
         end
       end
             
@@ -44,8 +51,7 @@ class Chef
           puts "security-groups not defined in whisk.yml"
           exit 1
         else
-          lookup_hash = get_config["security-groups"]
-          groups.split(',').map! { |name| name.replace(lookup_hash[name]) }.join(',')
+          groups.split(',').map! { |name| name.replace(get_config["security-groups"][name]) }.join(',')
         end
       end
     end
@@ -87,7 +93,7 @@ class Chef
 
   class WhiskGenerate < Chef::Knife
     include Knife::WhiskBase
-    banner "knife whisk generate SERVER [OPTION]"
+    banner "knife whisk generate [SERVER]"
     def run
       full_hash = get_config
       if name_args.size == 0
@@ -107,8 +113,11 @@ class Chef
         end
       end
       output_hash = output_hash.merge(@config[:overrides])
-      output_hash["security-groups"] = get_security_groups(output_hash["security-groups"]) unless output_hash["security-groups"].nil?
-      printf "knife ec2 server create %s\n", output_hash.map {|key, value| ["--"+key, value]}.join(" ")
+      unless output_hash["security-groups"].nil?
+        output_hash["security-groups-ids"] = get_security_groups(output_hash["security-groups"])
+        output_hash.delete("security-groups")
+      end
+      printf "knife ec2 server create %s\n", output_hash.map { |key, value| ["--"+key, value] }.join(" ")
     end
   end
 

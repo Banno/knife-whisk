@@ -17,7 +17,7 @@ class Chef
             :short => '-M MIXINS',
             :long => '--mixins MIXINS',
             :description => "Overrides server mixins, takes comma seperated list of mixins",
-            :proc => Proc.new { |input| input.split(",")}
+            :proc => Proc.new { |input| input.split(",") }
           
           option :overrides,
             :short => '-O STRING',
@@ -53,12 +53,24 @@ class Chef
         else
           groups_array = groups.split(',')
           groups_array.each do |name|
-              if get_config["security-groups"][name].nil?
-                  puts "#{name} security group not defined in whisk.yml"
-                  exit 1
-              end
+            if get_config["security-groups"][name].nil?
+              puts "#{name} security group not defined in whisk.yml"
+              exit 1
+            end
           end
           groups_array.map! { |name| name.replace(get_config["security-groups"][name]) }.join(',')
+        end
+      end
+      def check_mixin(mixin)
+        if get_config["mixins"][mixin].nil?
+          puts "#{mixin} not defined in whisk.yml"
+          exit 1
+        end
+      end
+      def check_server(server)
+        if get_config["servers"][server].nil?
+          puts "#{server} not defined in whisk.yml"
+          exit 1
         end
       end
     end
@@ -83,8 +95,10 @@ class Chef
         show_usage
         exit 1
       end
-      puts name_args.first
-      puts get_config["servers"]["#{name_args.first}"].to_yaml
+      unless check_server(name_args.first)
+        puts name_args.first
+        puts get_config["servers"]["#{name_args.first}"].to_yaml
+      end
     end
   end
 
@@ -98,16 +112,13 @@ class Chef
         server_config = full_hash["mixins"]["defaults"]
         server_mixins = ["defaults"]
       else
-        if full_hash["servers"][name_args.first].nil?
-          puts "#{name_args.first} server not defined in whisk.yml"
-          exit 1
-        else
+        unless check_server(name_args.first)
           server_mixins = full_hash["servers"][name_args.first]["mixins"]
           server_config = full_hash["servers"][name_args.first]["config"]
         end
       end
       
-      unless @config[:mixins].nil?
+      unless @config[:mixins].nil? or @config[:mixins].each { |mixin| check_mixin(mixin) }
         server_mixins = server_mixins + @config[:mixins]
       end
       
@@ -149,8 +160,10 @@ class Chef
         show_usage
         exit 1
       end
-      puts name_args.first
-      puts get_config["mixins"]["#{name_args.first}"].to_yaml
+      unless check_mixin(name_args.first)
+        puts name_args.first
+        puts get_config["mixins"]["#{name_args.first}"].to_yaml
+      end
     end
   end
 

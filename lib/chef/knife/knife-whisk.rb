@@ -51,7 +51,14 @@ class Chef
           puts "security-groups not defined in whisk.yml"
           exit 1
         else
-          groups.split(',').map! { |name| name.replace(get_config["security-groups"][name]) }.join(',')
+          groups_array = groups.split(',')
+          groups_array.each do |name|
+              if get_config["security-groups"][name].nil?
+                  puts "#{name} security group not defined in whisk.yml"
+                  exit 1
+              end
+          end
+          groups_array.map! { |name| name.replace(get_config["security-groups"][name]) }.join(',')
         end
       end
     end
@@ -86,27 +93,39 @@ class Chef
     banner "knife whisk generate [SERVER]"
     def run
       full_hash = get_config
+      
       if name_args.size == 0
         server_config = full_hash["mixins"]["defaults"]
         server_mixins = ["defaults"]
       else
-        server_mixins = full_hash["servers"][name_args.first]["mixins"]
-        server_config = full_hash["servers"][name_args.first]["config"]
+        if full_hash["servers"][name_args.first].nil?
+          puts "#{name_args.first} server not defined in whisk.yml"
+          exit 1
+        else
+          server_mixins = full_hash["servers"][name_args.first]["mixins"]
+          server_config = full_hash["servers"][name_args.first]["config"]
+        end
       end
+      
       unless @config[:mixins].nil?
         server_mixins = server_mixins + @config[:mixins]
       end
+      
       output_hash = server_mixins.inject(Hash.new) {|output, mixin| output.merge(full_hash["mixins"][mixin])}.merge(server_config)
+      
       output_hash.each do |mixin, value|
         if value.kind_of?(Array)
           output_hash[mixin] = value.join(",")
         end
       end
+      
       output_hash = output_hash.merge(@config[:overrides]) unless @config[:overrides].nil?
+      
       unless output_hash["security-groups"].nil?
         output_hash["security-groups-ids"] = get_security_groups(output_hash["security-groups"])
         output_hash.delete("security-groups")
       end
+      
       printf "knife ec2 server create %s\n", output_hash.map { |key, value| ["--"+key, value] }.join(" ")
     end
   end

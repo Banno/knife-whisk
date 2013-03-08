@@ -28,20 +28,20 @@ class Chef
               if Hash[*string.split].keys.select { |n| n[0..1] != "--" }.size == 0
                 Hash[Hash[*string.split].map {|key, val|[key.sub(/^--/, ''), val]}]
               else
-                puts "Please use only long form flag names"
-                exit 1
+                false
               end
             }
         end
       end
+
+      def exit_with_message(message) ui.fatal message; exit 1 end
             
       def get_config
         if Chef::Config[:knife][:whisk_config_file].nil?
           if File.exists?(::Chef::Knife::chef_config_dir+"/whisk.yml")
             YAML.load_file(::Chef::Knife::chef_config_dir+"/whisk.yml")
           else
-            puts "Required whisk.yml does not exist"
-            exit 1
+            return false
           end
         else
           YAML.load_file(Chef::Config[:knife][:whisk_config_file])
@@ -49,34 +49,21 @@ class Chef
       end
 
       def get_security_groups(groups)
-        if get_config["security-groups"].nil?
-          puts "security-groups not defined in whisk.yml"
-          exit 1
-        else
-          groups_array = groups.split(',')
-          groups_array.each do |name|
-            if get_config["security-groups"][name].nil?
-              puts "#{name} security group not defined in whisk.yml"
-              exit 1
-            end
-          end
-          groups_array.map! { |name| name.replace(get_config["security-groups"][name]) }.join(',')
-        end
+        groups.split(',').map! { |name| name.replace(get_config["security-groups"][name]) }.join(',')
       end
 
-      def check_mixin(mixin)
-        if get_config["mixins"][mixin].nil?
-          puts "#{mixin} not defined in whisk.yml"
-          exit 1
-        end
+      def security_group_exists?(group) 
+        ! get_config["security-groups"][group].nil?
       end
 
-      def check_server(server)
-        if get_config["servers"][server].nil?
-          puts "#{server} not defined in whisk.yml"
-          exit 1
-        end
+      def mixin_exists?(mixin)
+        ! get_config["mixins"][mixin].nil?
       end
+
+      def server_exists?(server)
+        ! get_config["servers"][server].nil?
+      end
+
     end
   end
 
@@ -84,24 +71,25 @@ class Chef
     include Knife::WhiskBase
     banner "knife whisk server list"
     def run
+      exit_with_message("Required whisk.yml does not exist") unless get_config
       get_config["servers"].each do |server|
         puts server.first
       end
     end
   end
-  
+
   class WhiskServerShow < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk server show SERVER"
     def run
-      unless name_args.size == 1
-        ui.fatal "You must specify a server name"
-        show_usage
-        exit 1
-      end
-      unless check_server(name_args.first)
+      exit_with_message("Required whisk.yml does not exist") unless get_config
+      exit_with_message("You must specify a server name") unless name_args.size == 1
+      
+      if server_exists?(name_args.first)
         puts name_args.first
         puts get_config["servers"]["#{name_args.first}"].to_yaml
+      else
+        exit_with_message("#{name_args.first} server template does not exist")
       end
     end
   end
@@ -110,6 +98,7 @@ class Chef
     include Knife::WhiskBase
     banner "knife whisk mixin list"
     def run
+      exit_with_message("Required whisk.yml does not exist") unless get_config
       get_config["mixins"].each do |mixin|
         puts mixin.first
       end
@@ -120,14 +109,14 @@ class Chef
     include Knife::WhiskBase
     banner "knife whisk mixin show MIXIN"
     def run
-      unless name_args.size == 1
-        ui.fatal "You must specify a mixin"
-        show_usage
-        exit 1
-      end
-      unless check_mixin(name_args.first)
+      exit_with_message("Required whisk.yml does not exist") unless get_config
+      exit_with_message("You must specify a mixin") unless name_args.size == 1
+      
+      if mixin_exists?(name_args.first)
         puts name_args.first
         puts get_config["mixins"]["#{name_args.first}"].to_yaml
+      else
+        exit_with_message("#{name_args.first} mixin does not exist")
       end
     end
   end
@@ -136,33 +125,46 @@ class Chef
     include Knife::WhiskBase
     banner "knife whisk generate [SERVER]"
     def run
-      full_hash = get_config
+      exit_with_message("Required whisk.yml does not exist") unless get_config
       
+      full_hash = get_config
+            
       if name_args.size == 0
         server_config = full_hash["mixins"]["defaults"]
         server_mixins = ["defaults"]
+      elsif server_exists?(name_args.first)
+        server_mixins = full_hash["servers"][name_args.first]["mixins"]
+        server_config = full_hash["servers"][name_args.first]["config"]
       else
-        unless check_server(name_args.first)
-          server_mixins = full_hash["servers"][name_args.first]["mixins"]
-          server_config = full_hash["servers"][name_args.first]["config"]
-        end
+        exit_with_message("#{name_args.first} server template does not exist")
       end
       
-      unless @config[:mixins].nil? or @config[:mixins].each { |mixin| check_mixin(mixin) }
+      unless @config[:mixins].nil?
         server_mixins = server_mixins + @config[:mixins]
       end
-      
+
+      #checks to make sure all mixins exist
+      server_mixins.each { |mixin| exit_with_message("#{mixin} mixin does not exist") unless mixin_exists?(mixin) }
+
+      #merges together all mixin config values with server config values
       output_hash = server_mixins.inject(Hash.new) {|output, mixin| output.merge(full_hash["mixins"][mixin])}.merge(server_config)
       
+      #convert config values that are arrays to comma seperates strings
       output_hash.each do |mixin, value|
         if value.kind_of?(Array)
           output_hash[mixin] = value.join(",")
         end
       end
       
-      output_hash = output_hash.merge(@config[:overrides]) unless @config[:overrides].nil?
+      unless @config[:overrides].nil?
+        exit_with_message("Please use long form flags only in overrides") unless @config[:overrides].kind_of?(Hash)
+        output_hash = output_hash.merge(@config[:overrides])
+      end
       
+      #convert security-group names to ids if needed and make sure they exist in the lookup hash
       unless output_hash["security-groups"].nil?
+        exit_with_message("security-groups not defined in whisk.yml") unless get_config["security-groups"]
+        output_hash["security-groups"].split(',').each { |group| exit_with_message("#{group} security group does not exist in whisk.yml") unless security_group_exists?(group)}
         output_hash["security-groups-ids"] = get_security_groups(output_hash["security-groups"])
         output_hash.delete("security-groups")
       end

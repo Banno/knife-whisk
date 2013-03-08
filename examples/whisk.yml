@@ -46,7 +46,7 @@ servers:
   database_server:
     mixins: 
       - defaults
-      - public_subnet
+      - ebs
     config:
       run-list:
       - "recipe[postgres]"

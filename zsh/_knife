@@ -59,6 +59,7 @@ _knife() {
     ;;
     whisk)
       compadd "$@" mixin server generate
+    ;;
     *)
     _arguments '2:Subsubcommands:($(_knife_options1))'
     esac
@@ -91,6 +92,9 @@ _knife() {
     ;;
     server)
       compadd "$@" list show
+    ;;
+  generate)
+      compadd "$@" `knife whisk server list`
     ;;
     *)
       _arguments '3:Subsubcommands:($(_knife_options2))'

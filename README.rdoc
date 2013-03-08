@@ -1,12 +1,12 @@
-# Knife Whisk
+= Knife Whisk
 
-[knife-whisk](https://github.com/Banno/knife-whisk) is a utility for quickly whipping up servers. A best practice is for a team to collect and keep the commands used for creating and bootstrapping nodes in source control, this tool does just that. It also goes a step further and lets you ask for a machine with just a few parameters and hands you a `knife ec2 server create` command with all of the default configuration. This is important so the operators can maintain the defaults for using ec2, but they can be overridden as needed. All together, this will give us a "frictionless" tool for understanding how servers are created in our organization and quick access to recreate them during a crisis.
+knife-whisk is a utility for quickly whipping up servers. A best practice is for a team to collect and keep the commands used for creating and bootstrapping nodes in source control, this tool does just that. It also goes a step further and lets you ask for a machine with just a few parameters and hands you a `knife ec2 server create` command with all of the default configuration. This is important so the operators can maintain the defaults for using ec2, but they can be overridden as needed. All together, this will give us a "frictionless" tool for understanding how servers are created in our organization and quick access to recreate them during a crisis.
 
-## Configuration
+== Configuration
 
-A <tt>whisk.yml</tt> file must exist for knife-whisk to work. There is an example in [the example directory](https://github.com/Banno/knife-whisk/examples). The path to the <tt>whisk.yml</tt> file can be set via environment variable, in your <tt>.chef</tt> directory, or via the <tt>--whisk-config</tt>  or <tt>-C</tt> flag.
+A <tt>whisk.yml</tt> file must exist for knife-whisk to work. There is an example in the example directory. The path to the <tt>whisk.yml</tt> file can be set via environment variable, in your <tt>.chef</tt> directory, or via the <tt>--whisk-config</tt>  or <tt>-C</tt> flag.
 
-## Installation
+== Installation
 
 Add this line to your application's Gemfile:
 
@@ -20,26 +20,26 @@ Or install it yourself as:
 
     $ gem install knife-whisk
 
-## Subcommands
+== Subcommands
 
 This plugin provides the following Knife subcommands. Specific command options can be found by invoking the subcommand with a <tt>--help</tt> flag
 
-### knife whisk mixin list
+=== knife whisk mixin list
 Lists the available mixins
-### knife whisk mixin show
+=== knife whisk mixin show
 Shows the yaml output of the details of the mixin
-### knife whisk server list
+=== knife whisk server list
 Lists the available servers templates
-### knife whisk server show
+=== knife whisk server show
 Shows the yaml output of the details of the server
-### knife whisk generate
+=== knife whisk generate
 Outputs a knife command with the provided server template, mixins, and overrides. When using the <tt>--overrides</tt> flag you must provide long form flag names, <tt>--node-name</tt> not <tt>-N</tt>.
 
 Example:
 	
-	$ knife whisk generate application_server --mixins defaults,public_subnet --overrides "--node-name server1 --image ami-123456"
+    $ knife whisk generate application_server --mixins defaults,public_subnet --overrides "--node-name server1 --image ami-123456"
 
-## Contributing
+== Contributing
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
@@ -47,7 +47,7 @@ Example:
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
-## ToDo
+== ToDo
 * Support for non ec2 setups
 * whisk add mixin
 * whisk add server

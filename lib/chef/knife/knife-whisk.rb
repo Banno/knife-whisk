@@ -47,6 +47,7 @@ class Chef
           YAML.load_file(Chef::Config[:knife][:whisk_config_file])
         end
       end
+
       def get_security_groups(groups)
         if get_config["security-groups"].nil?
           puts "security-groups not defined in whisk.yml"
@@ -62,12 +63,14 @@ class Chef
           groups_array.map! { |name| name.replace(get_config["security-groups"][name]) }.join(',')
         end
       end
+
       def check_mixin(mixin)
         if get_config["mixins"][mixin].nil?
           puts "#{mixin} not defined in whisk.yml"
           exit 1
         end
       end
+
       def check_server(server)
         if get_config["servers"][server].nil?
           puts "#{server} not defined in whisk.yml"

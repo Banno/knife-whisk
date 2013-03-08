@@ -20,6 +20,8 @@ Or install it yourself as:
 
     $ gem install knife-whisk
 
+This repository also includes a zsh folder, with a replacement for oh-my-zsh's knife plugin.  Copy that to your ~/.oh-my-zsh/plugins/knife folder, and enabled the plugin by adding "knife" to your plugins=() in your .zshrc. You will likely need to reload your shell. 
+
 == Subcommands
 
 This plugin provides the following Knife subcommands. Specific command options can be found by invoking the subcommand with a <tt>--help</tt> flag

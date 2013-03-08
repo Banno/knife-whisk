@@ -34,7 +34,10 @@ class Chef
         end
       end
 
-      def exit_with_message(message) ui.fatal message; exit 1 end
+      def exit_with_message(message)
+        ui.fatal message 
+        Kernel.exit(1) 
+      end
             
       def get_config
         if Chef::Config[:knife][:whisk_config_file].nil?
@@ -70,6 +73,7 @@ class Chef
   class WhiskServerList < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk server list"
+    
     def run
       exit_with_message("Required whisk.yml does not exist") unless get_config
       get_config["servers"].each do |server|
@@ -81,6 +85,7 @@ class Chef
   class WhiskServerShow < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk server show SERVER"
+    
     def run
       exit_with_message("Required whisk.yml does not exist") unless get_config
       exit_with_message("You must specify a server name") unless name_args.size == 1
@@ -97,6 +102,7 @@ class Chef
   class WhiskMixinList < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk mixin list"
+    
     def run
       exit_with_message("Required whisk.yml does not exist") unless get_config
       get_config["mixins"].each do |mixin|
@@ -108,6 +114,7 @@ class Chef
   class WhiskMixinShow < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk mixin show MIXIN"
+    
     def run
       exit_with_message("Required whisk.yml does not exist") unless get_config
       exit_with_message("You must specify a mixin") unless name_args.size == 1
@@ -124,6 +131,7 @@ class Chef
   class WhiskGenerate < Chef::Knife
     include Knife::WhiskBase
     banner "knife whisk generate [SERVER]"
+    
     def run
       exit_with_message("Required whisk.yml does not exist") unless get_config
       

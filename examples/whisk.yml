@@ -38,7 +38,7 @@ servers:
     - public_subnet
     config:
       run-list:
-      - "recipe[banno-cms]"
+      - "recipe[essentials]"
       security-groups:
       - default
       - java_app_server

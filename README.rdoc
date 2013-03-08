@@ -51,4 +51,4 @@ Example:
 * Support for non ec2 setups
 * whisk add mixin
 * whisk add server
-* cli auto completion
+* cli tab completion

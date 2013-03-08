@@ -1,0 +1,53 @@
+mixins:
+  defaults:
+    image: ami-950680fc      # ubuntu instance store
+    subnet: subnet-12345678  # private subnet
+    region: us-east-1        
+    user-data: user_data/before_bootstrap.sh
+    flavor: m1.small
+    ssh-user: ubuntu
+    template: chef_full
+    security-groups: default
+  ebs:
+    image: ami-e50e888c
+  public_subnet:
+    subnet: subnet-87654321
+
+security-groups:
+  default: sg-12345678
+  load_balancer: sg-23456789
+  java_app_server: sg-34567890
+  database_server: sg-45678901
+
+servers:
+  prod_nginx_load_balancer:
+    mixins:
+    - defaults
+    - public_subnet
+    config:
+      run-list: 
+      - "recipe[nginx]"
+      - "role[load_balancer]"
+      security-groups:
+      - default
+      - load_balancer
+      environment: stag
+  app_server:
+    mixins:
+    - defaults
+    - public_subnet
+    config:
+      run-list:
+      - "recipe[banno-cms]"
+      security-groups:
+      - default
+      - java_app_server
+      environment: prod
+  database_server:
+    mixins: 
+      - defaults
+      - public_subnet
+    config:
+      run-list:
+      - "recipe[postgres]"
+      environment: prod

@@ -4,3 +4,5 @@
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+Pester us if we don't get your Pull Requests merged in a timely fashion. :)

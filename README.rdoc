@@ -47,7 +47,8 @@ Example:
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
-## Future Additions
+## ToDo
 * Support for non ec2 setups
 * whisk add mixin
 * whisk add server
+* cli auto completion

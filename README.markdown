@@ -2,7 +2,7 @@
 
 A utility for quickly whipping up new servers in a team environment
 
-![Whisk](http://www.gracioushome.com/images/5039756_5.jpg)
+![whisk](https://github.com/Banno/knife-whisk/raw/master/whisk.jpg)
 ## Overview
 Chef is a great tool for configuring servers once they're up, but it doesn't address configuration management for initializing cloud servers in the first place. This tool lets your team define named servers and configuration mixins to help your team always create new servers uniformly. Currently, it will generate `knife ec2 server create` commands based upon the configuration defined in your `whisk.yml` file. You're free to provide overrides and additional flags when generating a new command to spit out a slight alteration of an existing server's config.
 

@@ -173,7 +173,7 @@ class Chef
       unless output_hash["security-groups"].nil?
         exit_with_message("security-groups not defined in whisk.yml") unless get_config["security-groups"]
         output_hash["security-groups"].split(',').each { |group| exit_with_message("#{group} security group does not exist in whisk.yml") unless security_group_exists?(group)}
-        output_hash["security-groups-ids"] = get_security_groups(output_hash["security-groups"])
+        output_hash["security-group-ids"] = get_security_groups(output_hash["security-groups"])
         output_hash.delete("security-groups")
       end
       

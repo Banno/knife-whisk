@@ -67,6 +67,10 @@ class Chef
         ! get_config["servers"][server].nil?
       end
 
+      def add_quotes(val)
+        "\"#{val}\""
+      end
+
     end
   end
 
@@ -177,6 +181,9 @@ class Chef
         output_hash.delete("security-groups")
       end
       
+      # run-list needs quotes for knife ec2 to accept the arg
+      output_hash["run-list"] = add_quotes(output_hash["run-list"]) unless output_hash["run-list"].nil?
+
       printf "knife ec2 server create %s\n", output_hash.map { |key, value| ["--"+key, value] }.join(" ")
     end
   end

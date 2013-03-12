@@ -71,6 +71,8 @@ This is where knife-whisk shines. You don't have to be aware of all the ins and 
 
 Most importantly, as a team you define what your production servers look like in your whisk.yml file and you'll never bring up a new node with a missing security group because you forgot some ancillary service was on the node that needed it.
 
+Security groups with VPC are a pain so we added a way to call them by name in your whisk.yml. knife-whisk will translate the `--security-groups name1,name2` to `--security-groups-ids id1,id2` according to what is in your "security-groups" lookup section.
+
 ## Installation
 
 Add this line to your application's Gemfile:

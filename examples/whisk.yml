@@ -13,11 +13,16 @@ mixins:
   public_subnet:
     subnet: subnet-87654321
 
-security-groups:
-  default: sg-12345678
-  load_balancer: sg-23456789
-  java_app_server: sg-34567890
-  database_server: sg-45678901
+config:
+  aws:
+    cli_command: "ec2 server create"
+    security-groups:
+      default: sg-12345678
+      load_balancer: sg-23456789
+      java_app_server: sg-34567890
+      database_server: sg-45678901
+  kvm:
+    cli_command: "vm create"
 
 servers:
   prod_nginx_load_balancer:

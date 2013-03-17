@@ -1,5 +1,6 @@
 mixins:
   defaults:
+    config: aws
     image: ami-950680fc      # ubuntu instance store
     subnet: subnet-12345678  # private subnet
     region: us-east-1        

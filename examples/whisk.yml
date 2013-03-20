@@ -1,6 +1,6 @@
 mixins:
   defaults:
-    config: aws
+    provider: aws
     image: ami-950680fc      # ubuntu instance store
     subnet: subnet-12345678  # private subnet
     region: us-east-1        
@@ -9,12 +9,14 @@ mixins:
     ssh-user: ubuntu
     template: chef_full
     security-groups: default
+  aws:
+    provider: aws
   ebs:
     image: ami-e50e888c
   public_subnet:
     subnet: subnet-87654321
 
-config:
+provider_config:
   aws:
     cli_command: "ec2 server create"
     security-groups:
@@ -24,12 +26,15 @@ config:
       database_server: sg-45678901
   kvm:
     cli_command: "vm create"
+  rackspace:
+    cli_command: "rackspace server create"
 
 servers:
   prod_nginx_load_balancer:
     mixins:
     - defaults
     - public_subnet
+    - aws
     config:
       run-list: 
       - "recipe[nginx]"
@@ -54,6 +59,7 @@ servers:
       - defaults
       - ebs
     config:
+      provider: rackspace
       run-list:
       - "recipe[postgres]"
       environment: prod

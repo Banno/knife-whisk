@@ -14,6 +14,7 @@ Assume you've got knife-whisk installed and configured correctly and it's pointi
 ```
 mixins:
   defaults:
+  	provider: aws
     image: ami-950680fc      # ubuntu instance store
     subnet: subnet-12345678  # private subnet
     region: us-east-1
@@ -27,15 +28,21 @@ mixins:
   public_subnet:
     subnet: subnet-87654321
 
-security-groups:
-  default: sg-12345678
-  java_app_server: sg-34567890
-
+provider_config:
+  aws:
+    cli_command: "ec2 sever create"
+	security-groups:
+  	default: sg-12345678
+  	java_app_server: sg-34567890
+  kvm:
+    cli_command: "vm create"
+    
 servers:
   app_server:
     mixins:
     - defaults
     config:
+      provider: aws
       run-list:
       - "recipe[application-wrapper]"
       security-groups:

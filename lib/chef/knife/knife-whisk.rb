@@ -52,11 +52,11 @@ class Chef
       end
 
       def get_security_groups(groups)
-        groups.split(',').map! { |name| name.replace(get_config["config"]["aws"]["security-groups"][name]) }.join(',')
+        groups.split(',').map! { |name| name.replace(get_config["provider_config"]["aws"]["security-groups"][name]) }.join(',')
       end
 
       def security_group_exists?(group) 
-        ! get_config["config"]["aws"]["security-groups"][group].nil?
+        ! get_config["provider_config"]["aws"]["security-groups"][group].nil?
       end
 
       def mixin_exists?(mixin)
@@ -173,25 +173,29 @@ class Chef
         output_hash = output_hash.merge(@config[:overrides])
       end
       
-      #convert security-group names to ids if needed and make sure they exist in the lookup hash
-      unless output_hash["security-groups"].nil?
-        exit_with_message("security-groups not defined in whisk.yml") unless get_config["config"]["aws"]["security-groups"]
-        output_hash["security-groups"].split(',').each { |group| exit_with_message("#{group} security group does not exist in whisk.yml") unless security_group_exists?(group)}
-        output_hash["security-group-ids"] = get_security_groups(output_hash["security-groups"])
-        output_hash.delete("security-groups")
+      #check things for aws
+      if output_hash["provider"]["aws"]
+        #convert security-group names to ids if needed and make sure they exist in the lookup hash
+        unless output_hash["security-groups"].nil?
+          exit_with_message("security-groups not defined for this config in whisk.yml") unless get_config["provider_config"]["aws"]["security-groups"]
+          output_hash["security-groups"].split(',').each { |group| exit_with_message("#{group} security group does not exist in whisk.yml") unless security_group_exists?(group)}
+          output_hash["security-group-ids"] = get_security_groups(output_hash["security-groups"])
+          output_hash.delete("security-groups")
+        end
       end
       
-      # run-list needs quotes for knife ec2 to accept the arg
+      #some values need quotes for knife ec2 to accept the arg
       output_hash["run-list"] = add_quotes(output_hash["run-list"]) unless output_hash["run-list"].nil?
+      # json doesn't work currently output_hash["json-attributes"] = add_quotes(output_hash["json-attributes"]) unless output_hash["json-attributes"].nil?      
 
-      # get config string and check to make sure it exists
-      exit_with_message("config attribute must be provided") unless output_hash["config"]
-      exit_with_message("#{output_hash["config"]} cli_command doesn't exist in whisk.yml") unless full_hash["config"][output_hash["config"]]["cli_command"]
-      config = full_hash["config"][output_hash["config"]]["cli_command"]
+      #get config string and check to make sure it exists
+      exit_with_message("provider attribute must be provided") unless output_hash["provider"]
+      exit_with_message("#{output_hash["provider"]} cli_command doesn't exist in whisk.yml") unless full_hash["provider_config"][output_hash["provider"]]["cli_command"]
+      cli_command = full_hash["provider_config"][output_hash["provider"]]["cli_command"]
 
-      output_hash.delete("config")
+      output_hash.delete("provider")
 
-      printf "knife %s %s\n", config, output_hash.map { |key, value| ["--"+key, value] }.join(" ")
+      printf "knife %s %s\n", cli_command, output_hash.map { |key, value| ["--"+key, value] }.join(" ")
     end
   end
 end

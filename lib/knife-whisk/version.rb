@@ -1,5 +1,5 @@
 module Knife
   module Whisk
-    VERSION = "1.0.0"
+    VERSION = "0.0.2"
   end
 end

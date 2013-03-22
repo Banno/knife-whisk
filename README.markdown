@@ -14,6 +14,7 @@ Assume you've got knife-whisk installed and configured correctly and it's pointi
 ```
 mixins:
   defaults:
+  	provider: aws
     image: ami-950680fc      # ubuntu instance store
     subnet: subnet-12345678  # private subnet
     region: us-east-1
@@ -27,15 +28,21 @@ mixins:
   public_subnet:
     subnet: subnet-87654321
 
-security-groups:
-  default: sg-12345678
-  java_app_server: sg-34567890
-
+provider_config:
+  aws:
+    cli_command: "ec2 sever create"
+	security-groups:
+  	default: sg-12345678
+  	java_app_server: sg-34567890
+  kvm:
+    cli_command: "vm create"
+    
 servers:
   app_server:
     mixins:
     - defaults
     config:
+      provider: aws
       run-list:
       - "recipe[application-wrapper]"
       security-groups:
@@ -133,7 +140,7 @@ knife whisk generate application_server --mixins public_subnet
 ```
 
 ```
-knife whisk generate application_server --overrides "--environment=dev --node-name dev-application-server"
+knife whisk generate application_server --overrides "--environment dev --node-name dev-application-server"
 ```
 
 ## Tab Completion
@@ -142,9 +149,10 @@ knife whisk generate application_server --overrides "--environment=dev --node-na
 This repository also includes a zsh folder, with a replacement for oh-my-zsh's knife plugin.  Copy that to your ~/.oh-my-zsh/plugins/knife folder, and enabled the plugin by adding "knife" to your plugins=() in your .zshrc. You will likely need to reload your shell. 
 
 ## Todo
-* Support for non ec2 setups
+* supprot for --json-attributes knife flag
 * whisk add mixin
 * whisk add server
+* whisk provider list
 * bash tab completion
 
 ##Authors

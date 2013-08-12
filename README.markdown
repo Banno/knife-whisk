@@ -30,7 +30,7 @@ mixins:
 
 provider_config:
   aws:
-    cli_command: "ec2 sever create"
+    cli_command: "ec2 server create"
    		security-groups:
         default: sg-12345678
         java_app_server: sg-34567890

@@ -188,6 +188,8 @@ class Chef
       output_hash["run-list"] = add_quotes(output_hash["run-list"]) unless output_hash["run-list"].nil?
       # json doesn't work currently output_hash["json-attributes"] = add_quotes(output_hash["json-attributes"]) unless output_hash["json-attributes"].nil?
 
+      output_hash["node-name"] = name_args.first if output_hash["node-name"].nil?
+
       #get config string and check to make sure it exists
       exit_with_message("provider attribute must be provided") unless output_hash["provider"]
       exit_with_message("#{output_hash["provider"]} cli_command doesn't exist in whisk.yml") unless full_hash["provider_config"][output_hash["provider"]]["cli_command"]

@@ -8,6 +8,7 @@ Gem::Specification.new do |gem|
   gem.version       = Knife::Whisk::VERSION
   gem.authors       = ["Nic Grayson"]
   gem.email         = ["nic.grayson@banno.com"]
+  gem.license       = 'Apache 2.0'
   gem.summary       = %q{Extends knife to display knife cloud server create commands}
   gem.description   = %q{A utility for quickly whipping up new servers in a team environment}
   gem.homepage      = ""
